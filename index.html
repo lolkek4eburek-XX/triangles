@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Игровая сетка</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        canvas {
+            display: block;
+            background-color: #FFAAAA;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+    <audio id="ambient" src="ambient.mp3" loop></audio>
+    <audio id="collect" src="collect.mp3"></audio>
+    <audio id="megacollect" src="megacollect.mp3"></audio>
+    <audio id="defeat" src="defeat.mp3"></audio>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const context = canvas.getContext('2d');
+
+        const ambientSound = document.getElementById('ambient');
+        const collectSound = document.getElementById('collect');
+        const megacollectSound = document.getElementById('megacollect');
+        const defeatSound = document.getElementById('defeat');
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const tileSize = 20;
+
+        const player = {
+            x: canvas.width / 2,
+            y: canvas.height / 2,
+            radius: 40
+        };
+
+        const target = {
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            radius: 20
+        };
+
+        const enemy = {
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            radius: 30,
+            dx: 2,
+            dy: 2
+        };
+
+        let score = 0;
+
+        const keys = { w: false, a: false, s: false, d: false, ArrowUp: false, ArrowLeft: false, ArrowDown: false, ArrowRight: false };
+
+        function drawGrid() {
+            for (let x = 0; x < canvas.width; x += tileSize) {
+                for (let y = 0; y < canvas.height; y += tileSize) {
+                    context.fillStyle = isInCircle(player, x, y) ? '#AADDFF' :
+                        isInCircle(target, x, y) ? '#AAFFAA' :
+                            isInCircle(enemy, x, y) ? '#DD0000' :
+                                '#FFAAAA';
+                    context.fillRect(x, y, tileSize, tileSize);
+                }
+            }
+        }
+
+        function isInCircle(circle, x, y) {
+            return Math.hypot(circle.x - x, circle.y - y) <= circle.radius ||
+                Math.hypot(circle.x - (x + tileSize), circle.y - y) <= circle.radius ||
+                Math.hypot(circle.x - x, circle.y - (y + tileSize)) <= circle.radius ||
+                Math.hypot(circle.x - (x + tileSize), circle.y - (y + tileSize)) <= circle.radius;
+        }
+
+        function updatePlayerPosition() {
+            const moveAmount = 5;
+
+            if (keys.w || keys.ArrowUp) player.y -= moveAmount;
+            if (keys.a || keys.ArrowLeft) player.x -= moveAmount;
+            if (keys.s || keys.ArrowDown) player.y += moveAmount;
+            if (keys.d || keys.ArrowRight) player.x += moveAmount;
+
+            // Teleport if touching edges
+            if (player.x < 0) player.x = canvas.width;
+            if (player.x > canvas.width) player.x = 0;
+            if (player.y < 0) player.y = canvas.height;
+            if (player.y > canvas.height) player.y = 0;
+        }
+
+        function updateEnemyPosition() {
+            enemy.x += enemy.dx;
+            enemy.y += enemy.dy;
+
+            // Bounce off the walls
+            if (enemy.x + enemy.radius > canvas.width || enemy.x - enemy.radius < 0) {
+                enemy.dx *= -1;
+            }
+            if (enemy.y + enemy.radius > canvas.height || enemy.y - enemy.radius < 0) {
+                enemy.dy *= -1;
+            }
+
+            // Increase size every 5 points, max size 50 px
+            if (score % 5 === 0 && score !== 0 && enemy.radius < 50) {
+                enemy.radius++;
+            }
+        }
+
+        function checkCollision() {
+            if (Math.hypot(player.x - target.x, player.y - target.y) <= player.radius + target.radius) {
+                score++;
+                target.x = Math.random() * canvas.width;
+                target.y = Math.random() * canvas.height;
+
+                if (score % 100 === 0) {
+                    megacollectSound.play();
+                } else {
+                    collectSound.play();
+                }
+                console.log(`Score: ${score}`);
+            }
+
+            if (Math.hypot(player.x - enemy.x, player.y - enemy.y) <= player.radius + enemy.radius) {
+                defeatSound.play();
+                alert("Game Over! Score: " + score);
+                document.location.reload();
+            }
+        }
+
+        function gameLoop() {
+            updatePlayerPosition();
+            updateEnemyPosition();
+            drawGrid();
+            checkCollision();
+            requestAnimationFrame(gameLoop);
+        }
+
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'w') keys.w = true;
+            if (e.key === 'a') keys.a = true;
+            if (e.key === 's') keys.s = true;
+            if (e.key === 'd') keys.d = true;
+            if (e.key === 'ArrowUp') keys.ArrowUp = true;
+            if (e.key === 'ArrowLeft') keys.ArrowLeft = true;
+            if (e.key === 'ArrowDown') keys.ArrowDown = true;
+            if (e.key === 'ArrowRight') keys.ArrowRight = true;
+        });
+
+        window.addEventListener('keyup', (e) => {
+            if (e.key === 'w') keys.w = false;
+            if (e.key === 'a') keys.a = false;
+            if (e.key === 's') keys.s = false;
+            if (e.key === 'd') keys.d = false;
+            if (e.key === 'ArrowUp') keys.ArrowUp = false;
+            if (e.key === 'ArrowLeft') keys.ArrowLeft = false;
+            if (e.key === 'ArrowDown') keys.ArrowDown = false;
+            if (e.key === 'ArrowRight') keys.ArrowRight = false;
+        });
+
+        // Play ambient sound on loop
+        ambientSound.play();
+
+        gameLoop();
+    </script>
+</body>
+</html>
