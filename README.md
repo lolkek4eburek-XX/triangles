@@ -22,7 +22,7 @@
 ## Установка
 1. Клонируйте репозиторий:
     
-    git clone https://github.com/lolkek4ebur/triangles.git
+    git clone https://github.com/lolkek4eburek-XX/triangles.git
     
 2. Перейдите в директорию проекта:
     
