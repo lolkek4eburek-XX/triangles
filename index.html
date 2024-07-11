@@ -15,10 +15,19 @@
             display: block;
             background-color: #FFAAAA;
         }
+
+        .score {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 20px;
+            color: #000;
+        }
     </style>
 </head>
 <body>
     <canvas id="gameCanvas"></canvas>
+    <div class="score" id="scoreDisplay">Score: 0</div>
     <audio id="ambient" src="ambient.mp3" loop></audio>
     <audio id="collect" src="collect.mp3"></audio>
     <audio id="megacollect" src="megacollect.mp3"></audio>
@@ -26,11 +35,11 @@
     <script>
         const canvas = document.getElementById('gameCanvas');
         const context = canvas.getContext('2d');
-
         const ambientSound = document.getElementById('ambient');
         const collectSound = document.getElementById('collect');
         const megacollectSound = document.getElementById('megacollect');
         const defeatSound = document.getElementById('defeat');
+        const scoreDisplay = document.getElementById('scoreDisplay');
 
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
@@ -40,7 +49,10 @@
         const player = {
             x: canvas.width / 2,
             y: canvas.height / 2,
-            radius: 40
+            radius: 40,
+            speed: 3,
+            targetX: null,
+            targetY: null
         };
 
         const target = {
@@ -83,6 +95,7 @@
         function updatePlayerPosition() {
             const moveAmount = 5;
 
+            // Update position based on keyboard input
             if (keys.w || keys.ArrowUp) player.y -= moveAmount;
             if (keys.a || keys.ArrowLeft) player.x -= moveAmount;
             if (keys.s || keys.ArrowDown) player.y += moveAmount;
@@ -93,6 +106,23 @@
             if (player.x > canvas.width) player.x = 0;
             if (player.y < 0) player.y = canvas.height;
             if (player.y > canvas.height) player.y = 0;
+
+            // Update position based on touch input
+            if (player.targetX !== null && player.targetY !== null) {
+                const dx = player.targetX - player.x;
+                const dy = player.targetY - player.y;
+                const distance = Math.hypot(dx, dy);
+
+                if (distance > player.speed) {
+                    player.x += (dx / distance) * player.speed;
+                    player.y += (dy / distance) * player.speed;
+                } else {
+                    player.x = player.targetX;
+                    player.y = player.targetY;
+                    player.targetX = null;
+                    player.targetY = null;
+                }
+            }
         }
 
         function updateEnemyPosition() {
@@ -124,7 +154,7 @@
                 } else {
                     collectSound.play();
                 }
-                console.log(`Score: ${score}`);
+                updateScore();
             }
 
             if (Math.hypot(player.x - enemy.x, player.y - enemy.y) <= player.radius + enemy.radius) {
@@ -132,6 +162,10 @@
                 alert("Game Over! Score: " + score);
                 document.location.reload();
             }
+        }
+
+        function updateScore() {
+            scoreDisplay.innerText = "Score: " + score;
         }
 
         function gameLoop() {
@@ -162,6 +196,13 @@
             if (e.key === 'ArrowLeft') keys.ArrowLeft = false;
             if (e.key === 'ArrowDown') keys.ArrowDown = false;
             if (e.key === 'ArrowRight') keys.ArrowRight = false;
+        });
+
+        canvas.addEventListener('touchstart', (e) => {
+            const touch = e.touches[0];
+            const rect = canvas.getBoundingClientRect();
+            player.targetX = touch.clientX - rect.left;
+            player.targetY = touch.clientY - rect.top;
         });
 
         // Play ambient sound on loop
