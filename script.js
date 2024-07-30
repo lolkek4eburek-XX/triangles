@@ -35,6 +35,7 @@ const enemy = {
 };
 
 let score = 0;
+let gameOver = false; // Переменная для отслеживания окончания игры
 
 const keys = { w: false, a: false, s: false, d: false, ArrowUp: false, ArrowLeft: false, ArrowDown: false, ArrowRight: false };
 
@@ -109,23 +110,26 @@ function updateEnemyPosition() {
 }
 
 function checkCollision() {
-    if (Math.hypot(player.x - target.x, player.y - target.y) <= player.radius + target.radius) {
-        score++;
-        target.x = Math.random() * canvas.width;
-        target.y = Math.random() * canvas.height;
+    if (!gameOver) { // Проверка только если не окончена игра
+        if (Math.hypot(player.x - target.x, player.y - target.y) <= player.radius + target.radius) {
+            score++;
+            target.x = Math.random() * canvas.width;
+            target.y = Math.random() * canvas.height;
 
-        if (score % 100 === 0) {
-            megacollectSound.play();
-        } else {
-            collectSound.play();
+            if (score % 100 === 0) {
+                megacollectSound.play();
+            } else {
+                collectSound.play();
+            }
+            updateScore();
         }
-        updateScore();
-    }
 
-    if (Math.hypot(player.x - enemy.x, player.y - enemy.y) <= player.radius + enemy.radius) {
-        defeatSound.play();
-        alert("Game Over! Score: " + score);
-        document.location.reload();
+        if (Math.hypot(player.x - enemy.x, player.y - enemy.y) <= player.radius + enemy.radius) {
+            gameOver = true; // Устанавливаем флаг окончания игры
+            defeatSound.play();
+            alert("Game Over! Score: " + score);
+            document.location.reload();
+        }
     }
 }
 
