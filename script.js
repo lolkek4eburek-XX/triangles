@@ -5,6 +5,8 @@ const collectSound = document.getElementById('collect');
 const megacollectSound = document.getElementById('megacollect');
 const defeatSound = document.getElementById('defeat');
 const scoreDisplay = document.getElementById('scoreDisplay');
+const rewardCount = document.getElementById('rewardCount');
+let rewardAmount = 0;
 
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
@@ -118,6 +120,8 @@ function checkCollision() {
 
             if (score % 100 === 0) {
                 megacollectSound.play();
+                rewardAmount++; // Увеличение награды
+                rewardCount.innerText = rewardAmount; // Обновление количества наград
             } else {
                 collectSound.play();
             }

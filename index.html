@@ -23,11 +23,29 @@
             font-size: 20px;
             color: #000;
         }
+
+        .reward {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 20px;
+            color: #000;
+        }
+
+            .reward img {
+                width: 30px;
+                height: 30px;
+                vertical-align: middle;
+            }
     </style>
 </head>
 <body>
     <canvas id="gameCanvas"></canvas>
     <div class="score" id="scoreDisplay">Score: 0</div>
+    <div class="reward" id="rewardDisplay">
+        <img src="reward.png" alt="Награда">
+        <span id="rewardCount">0</span>
+    </div>
     <audio id="ambient" src="ambient.mp3" loop></audio>
     <audio id="collect" src="collect.mp3"></audio>
     <audio id="megacollect" src="megacollect.mp3"></audio>
